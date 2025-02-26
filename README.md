@@ -1,4 +1,4 @@
-# Xosscipts and Appleghee - Scripts For Executor
+# Xosscipts - Scripts For Executor
 
 Kho lưu trữ này chứa nhiều script miễn phí cho Roblox được cập nhật mới ngày, bao gồm các GUI và công cụ cho các game như Murder Mystery 2 (MM2), The Mimic, và các game tùy chỉnh khác. Các script này chỉ được cung cấp cho mục đích giải trí.
 
