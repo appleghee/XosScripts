@@ -148,3 +148,5 @@ SliderButton.InputBegan:Connect(function(input)
 end)
 
 TriggerBotButton.MouseButton1Click:Connect(ToggleTriggerBot)
+
+-- Tác Giả: Appleghee
