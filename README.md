@@ -9,7 +9,7 @@ Kho lưu trữ này chứa nhiều script miễn phí cho Roblox được cập 
 ## Điều Khoản Sử Dụng
 Bằng cách sử dụng, tải xuống hoặc chỉnh sửa bất kỳ script nào trong kho lưu trữ này, bạn đồng ý với các điều khoản sau:
 
-1. **Sử Dụng Theo Rủi Ro Của Bạn**: Các script này được cung cấp "như hiện tại" mà không có bất kỳ bảo hành nào. Tác giả (Xosscipts - appleghee) không chịu trách nhiệm cho bất kỳ hậu quả nào, bao gồm nhưng không giới hạn ở việc bị cấm tài khoản, gián đoạn game, hoặc các vấn đề pháp lý phát sinh từ việc sử dụng chúng trong Roblox hoặc bất kỳ nền tảng nào khác.
+1. **Sử Dụng Theo Rủi Ro Của Bạn**: Các script này được cung cấp "như hiện tại" mà không có bất kỳ bảo hành nào. Tác giả (Xosscipts) không chịu trách nhiệm cho bất kỳ hậu quả nào, bao gồm nhưng không giới hạn ở việc bị cấm tài khoản, gián đoạn game, hoặc các vấn đề pháp lý phát sinh từ việc sử dụng chúng trong Roblox hoặc bất kỳ nền tảng nào khác.
 
 2. **Không Sử Dụng Thương Mại**: Các script này miễn phí cho mục đích cá nhân và không thương mại. Bạn không được phép bán, phân phối để kiếm lợi nhuận, hoặc tự nhận quyền sở hữu các script này mà không có sự cho phép rõ ràng từ tác giả.
 
@@ -33,3 +33,6 @@ Bằng cách sử dụng, tải xuống hoặc chỉnh sửa bất kỳ script n
 ## Cách Sử Dụng
 1. **Clone hoặc Tải Xuống**: Sao chép URL raw của một script (ví dụ: `mm2_gui.lua`) từ kho lưu trữ này.
 2. **Loadstring**: Sử dụng một executor Roblox (ví dụ: Synapse X, Krnl) để chạy script thông qua loadstring
+
+---
+dừng hoạt động cho đến 28/12/2025
