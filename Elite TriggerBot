@@ -1,0 +1,291 @@
+--[[
+    🎮 ULTIMATE HUNTER DASHBOARD - RPG EDITION
+    Author: Gemini AI
+    Update: Smooth GUI, Custom Parameters, Optimized Logic
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+--// ⚙️ CÀI ĐẶT MẶC ĐỊNH (CONFIG)
+_G.HunterConfig = {
+    -- Aimlock
+    AimlockEnabled = false,
+    AimSmoothness = 0.2, -- 0.05 (Gắt) -> 1 (Mượt)
+    AimFOV = 150, -- Bán kính vòng tròn ngắm
+    AimPart = "Head", -- Nhắm vào đâu (Head/Torso)
+    
+    -- TriggerBot
+    TriggerEnabled = false,
+    TriggerDelay = 0.05, -- Độ trễ sau khi nhận diện
+    
+    -- Big Head (Hitbox)
+    HitboxEnabled = false,
+    HitboxSize = 5,
+    HitboxTransparency = 0.7,
+    
+    -- UI
+    MenuKey = Enum.KeyCode.RightControl, -- Phím bật tắt Menu
+    ThemeColor = Color3.fromRGB(0, 255, 180) -- Màu chủ đạo (Cyan Neon)
+}
+
+--// 🎨 THƯ VIỆN GUI (MINI UI LIBRARY)
+local UI = {}
+local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
+ScreenGui.Name = "HunterDashboard"
+
+-- Tạo FOV Circle (Vòng tròn quanh chuột)
+local FOVCircle = Instance.new("ImageLabel", ScreenGui)
+FOVCircle.Image = "rbxassetid://3570695787"
+FOVCircle.BackgroundTransparency = 1
+FOVCircle.ImageColor3 = _G.HunterConfig.ThemeColor
+FOVCircle.ImageTransparency = 0.8
+FOVCircle.Visible = false
+FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+
+-- Main Frame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 320, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+
+-- Header
+local Header = Instance.new("Frame", MainFrame)
+Header.Size = UDim2.new(1, 0, 0, 40)
+Header.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
+
+local Title = Instance.new("TextLabel", Header)
+Title.Text = "⚡ HUNTER CONTROL"
+Title.Font = Enum.Font.GothamBlack
+Title.TextColor3 = _G.HunterConfig.ThemeColor
+Title.TextSize = 18
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Container chứa các nút
+local Container = Instance.new("ScrollingFrame", MainFrame)
+Container.Size = UDim2.new(1, -20, 1, -50)
+Container.Position = UDim2.new(0, 10, 0, 45)
+Container.BackgroundTransparency = 1
+Container.ScrollBarThickness = 2
+Container.ScrollBarImageColor3 = _G.HunterConfig.ThemeColor
+
+local UIList = Instance.new("UIListLayout", Container)
+UIList.Padding = UDim.new(0, 10)
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+
+--// HÀM TẠO GUI COMPONENTS
+function UI.CreateSection(text)
+    local Label = Instance.new("TextLabel", Container)
+    Label.Text = text
+    Label.Size = UDim2.new(1, 0, 0, 25)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Label.Font = Enum.Font.GothamBold
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+function UI.CreateToggle(text, configKey, callback)
+    local Button = Instance.new("TextButton", Container)
+    Button.Size = UDim2.new(1, 0, 0, 35)
+    Button.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    Button.Text = ""
+    Button.AutoButtonColor = false
+    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 6)
+    
+    local Title = Instance.new("TextLabel", Button)
+    Title.Text = text
+    Title.Size = UDim2.new(0.7, 0, 1, 0)
+    Title.Position = UDim2.new(0.05, 0, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamMedium
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local Status = Instance.new("Frame", Button)
+    Status.Size = UDim2.new(0, 20, 0, 20)
+    Status.Position = UDim2.new(0.9, -10, 0.5, -10)
+    Status.BackgroundColor3 = _G.HunterConfig[configKey] and _G.HunterConfig.ThemeColor or Color3.fromRGB(60, 60, 60)
+    Instance.new("UICorner", Status).CornerRadius = UDim.new(1, 0)
+    
+    Button.MouseButton1Click:Connect(function()
+        _G.HunterConfig[configKey] = not _G.HunterConfig[configKey]
+        
+        -- Animation
+        TweenService:Create(Status, TweenInfo.new(0.2), {
+            BackgroundColor3 = _G.HunterConfig[configKey] and _G.HunterConfig.ThemeColor or Color3.fromRGB(60, 60, 60)
+        }):Play()
+        
+        if callback then callback(_G.HunterConfig[configKey]) end
+    end)
+end
+
+function UI.CreateSlider(text, configKey, min, max, decimal)
+    local Frame = Instance.new("Frame", Container)
+    Frame.Size = UDim2.new(1, 0, 0, 50)
+    Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 6)
+    
+    local Label = Instance.new("TextLabel", Frame)
+    Label.Text = text
+    Label.Size = UDim2.new(1, -20, 0, 25)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Label.Font = Enum.Font.GothamMedium
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local ValueLabel = Instance.new("TextLabel", Frame)
+    ValueLabel.Text = tostring(_G.HunterConfig[configKey])
+    ValueLabel.Size = UDim2.new(0, 50, 0, 25)
+    ValueLabel.Position = UDim2.new(1, -60, 0, 0)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.TextColor3 = _G.HunterConfig.ThemeColor
+    ValueLabel.Font = Enum.Font.GothamBold
+    
+    local SliderBG = Instance.new("TextButton", Frame)
+    SliderBG.Size = UDim2.new(0.9, 0, 0, 6)
+    SliderBG.Position = UDim2.new(0.05, 0, 0.7, 0)
+    SliderBG.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    SliderBG.Text = ""
+    Instance.new("UICorner", SliderBG)
+    
+    local SliderFill = Instance.new("Frame", SliderBG)
+    SliderFill.Size = UDim2.new((_G.HunterConfig[configKey] - min) / (max - min), 0, 1, 0)
+    SliderFill.BackgroundColor3 = _G.HunterConfig.ThemeColor
+    Instance.new("UICorner", SliderFill)
+    
+    local dragging = false
+    
+    SliderBG.MouseButton1Down:Connect(function() dragging = true end)
+    UserInputService.InputEnded:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end 
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local pos = math.clamp((input.Position.X - SliderBG.AbsolutePosition.X) / SliderBG.AbsoluteSize.X, 0, 1)
+            local val = min + (max - min) * pos
+            if decimal then val = math.floor(val * 100) / 100 else val = math.floor(val) end
+            
+            _G.HunterConfig[configKey] = val
+            ValueLabel.Text = tostring(val)
+            SliderFill.Size = UDim2.new(pos, 0, 1, 0)
+        end
+    end)
+end
+
+--// 🔨 XÂY DỰNG GIAO DIỆN
+UI.CreateSection("AIM ASSIST")
+UI.CreateToggle("Enable Aimlock", "AimlockEnabled", function(v) FOVCircle.Visible = v end)
+UI.CreateSlider("Aim Smoothness (0=Lock)", "AimSmoothness", 0, 1, true)
+UI.CreateSlider("FOV Radius", "AimFOV", 50, 500, false)
+
+UI.CreateSection("TRIGGER BOT")
+UI.CreateToggle("Enable Auto-Fire", "TriggerEnabled")
+UI.CreateSlider("Fire Delay (s)", "TriggerDelay", 0, 1, true)
+
+UI.CreateSection("VISUALS & HITBOX")
+UI.CreateToggle("Big Head Mode", "HitboxEnabled")
+UI.CreateSlider("Head Size", "HitboxSize", 2, 10, true)
+UI.CreateSlider("Transparency", "HitboxTransparency", 0, 1, true)
+
+--// 🧠 LOGIC XỬ LÝ (PHẦN QUAN TRỌNG NHẤT)
+
+-- Hàm tìm NPC gần chuột nhất (cho Aimlock)
+local function GetClosestNPC()
+    local closest = nil
+    local shortestDist = _G.HunterConfig.AimFOV
+    local mousePos = Vector2.new(Mouse.X, Mouse.Y)
+    
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:FindFirstChild("Humanoid") and obj:FindFirstChild("Head") and not Players:GetPlayerFromCharacter(obj) then
+            local hum = obj.Humanoid
+            if hum.Health > 0 then
+                local vector, onScreen = Camera:WorldToViewportPoint(obj.Head.Position)
+                if onScreen then
+                    local dist = (Vector2.new(vector.X, vector.Y) - mousePos).Magnitude
+                    if dist < shortestDist then
+                        closest = obj.Head
+                        shortestDist = dist
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+-- Vòng lặp chính
+local lastShot = 0
+RunService.RenderStepped:Connect(function()
+    -- Cập nhật FOV Circle theo chuột
+    FOVCircle.Position = UDim2.new(0, Mouse.X, 0, Mouse.Y + 36) -- +36 để bù trừ thanh topbar
+    FOVCircle.Size = UDim2.new(0, _G.HunterConfig.AimFOV * 2, 0, _G.HunterConfig.AimFOV * 2)
+    
+    -- 1. Xử lý AIMLOCK
+    if _G.HunterConfig.AimlockEnabled then
+        local targetHead = GetClosestNPC()
+        if targetHead then
+            local targetPos = targetHead.Position
+            local currentCF = Camera.CFrame
+            -- Logic làm mượt (Smoothing)
+            Camera.CFrame = currentCF:Lerp(CFrame.new(currentCF.Position, targetPos), 1 - _G.HunterConfig.AimSmoothness)
+        end
+    end
+    
+    -- 2. Xử lý TRIGGERBOT & HITBOX
+    local target = Mouse.Target
+    if target and target.Parent and target.Parent:FindFirstChild("Humanoid") then
+        local npc = target.Parent
+        local hum = npc:FindFirstChild("Humanoid")
+        local head = npc:FindFirstChild("Head")
+        
+        if head and hum.Health > 0 and not Players:GetPlayerFromCharacter(npc) then
+            
+            -- TriggerBot
+            if _G.HunterConfig.TriggerEnabled then
+                if tick() - lastShot > _G.HunterConfig.TriggerDelay then
+                    lastShot = tick()
+                    mouse1press()
+                    task.wait(0.02)
+                    mouse1release()
+                end
+            end
+            
+            -- Hitbox Expander (Chỉ mở rộng NPC đang nhắm hoặc trong range)
+            if _G.HunterConfig.HitboxEnabled then
+                head.Size = Vector3.new(_G.HunterConfig.HitboxSize, _G.HunterConfig.HitboxSize, _G.HunterConfig.HitboxSize)
+                head.Transparency = _G.HunterConfig.HitboxTransparency
+                head.CanCollide = false
+            end
+        end
+    end
+end)
+
+--// ⌨️ PHÍM TẮT MENU
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == _G.HunterConfig.MenuKey then
+        MainFrame.Visible = not MainFrame.Visible
+        -- Hiệu ứng Fade
+        if MainFrame.Visible then
+            MainFrame.BackgroundTransparency = 1
+            TweenService:Create(MainFrame, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+        end
+    end
+end)
+
+print("⚡ ULTIMATE HUNTER DASHBOARD LOADED [RP: ON]")
